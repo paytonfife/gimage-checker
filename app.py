@@ -35,13 +35,15 @@ def require_logging_config() -> str:
     except Exception as exc:
         raise RuntimeError(
             "Missing required Streamlit secrets for usage logging. "
-            "Add `gcp_service_account` and `usage_log.sheet_url` before running checks."
+            "Add `gcp_service_account` and `usage_log.sheet_url` before running checks. "
+            "Use `.streamlit/secrets.toml.example` in the repo as the template."
         ) from exc
 
     if not isinstance(service_account_info, Mapping) or not str(sheet_url).strip():
         raise RuntimeError(
             "Streamlit secrets are malformed. `gcp_service_account` must be a service account "
-            "object and `usage_log.sheet_url` must be a non-empty string."
+            "object and `usage_log.sheet_url` must be a non-empty string. "
+            "Check `.streamlit/secrets.toml.example` for the expected shape."
         )
 
     return str(sheet_url)
@@ -318,7 +320,12 @@ def render_page() -> None:
             try:
                 log_usage(len(results_df), ecom_yes_count, elapsed)
             except Exception as exc:
-                st.error(f"Usage logging failed. Results were generated but logging is required: {exc}")
+                st.error(
+                    "Usage logging failed. Results were generated but logging is required. "
+                    "Make sure the Google Sheet URL is correct, the service account JSON is valid, "
+                    "and the sheet is shared with the service account email. "
+                    f"Original error: {exc}"
+                )
                 st.stop()
 
             st.session_state["results_df"] = results_df
