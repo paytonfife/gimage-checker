@@ -9,6 +9,7 @@ Streamlit app for checking whether a qualifying ECOM image exists in GImage for 
 - Removes duplicate style-colors before making API calls
 - Checks GImage in parallel using the mapped public API
 - Returns an `ASSET_URL` in the format `https://gimage.guess.com/Viewer/Style/STYLE-COLOR`
+- Returns `ECOM_IMAGES_AVAILABLE` as the number of ECOMM images found for the requested style-color
 - Returns `HAS_ECOM_IMAGE` as `Yes` or `No`
 - Exports results to Excel
 - Logs usage to a Google Sheet as part of the required runtime configuration
@@ -49,6 +50,8 @@ with this payload shape:
 ```text
 https://gimage.guess.com/Viewer/Style/<STYLE_ID>-<COLOR_ID>
 ```
+
+`ECOM_IMAGES_AVAILABLE` is the count of images in the matched `ECOMM` color entry. If no matching ECOMM images are found, it is `0`.
 
 ## Local Setup
 
@@ -121,5 +124,5 @@ Known examples from `API.md`:
 ## Notes
 
 - The app is desktop-first.
-- Results export contains `STYLE_ID`, `COLOR_ID`, `ASSET_URL`, and `HAS_ECOM_IMAGE`.
+- Results export contains `STYLE_ID`, `COLOR_ID`, `ASSET_URL`, `ECOM_IMAGES_AVAILABLE`, and `HAS_ECOM_IMAGE`.
 - The implementation intentionally mirrors the structure of the existing `style-checker` app.

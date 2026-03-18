@@ -155,9 +155,9 @@ def fetch_style_assets(style_id: str, color_id: str) -> dict:
         }
 
 
-def has_ecom_image(response_data: dict | None, target_color: str) -> bool:
+def get_ecom_image_count(response_data: dict | None, target_color: str) -> int:
     if not response_data:
-        return False
+        return 0
 
     style = response_data.get("Style") or {}
     image_types = style.get("ImageTypes") or []
@@ -171,29 +171,36 @@ def has_ecom_image(response_data: dict | None, target_color: str) -> bool:
             color_value = str(color_entry.get("Color") or "").strip().upper()
             images = color_entry.get("Images") or []
             if color_value == target_color_normalized and len(images) > 0:
-                return True
+                return len(images)
 
         if not image_type.get("Colors") and image_type.get("Images"):
-            return True
+            return len(image_type.get("Images") or [])
 
-    return False
+    return 0
 
 
 def check_style_color(style_id: str, color_id: str) -> dict:
     response = fetch_style_assets(style_id, color_id)
-    has_image = has_ecom_image(response["data"], color_id)
+    ecom_image_count = get_ecom_image_count(response["data"], color_id)
     return {
         "STYLE_ID": style_id,
         "COLOR_ID": color_id,
         "ASSET_URL": f"{VIEWER_BASE_URL}/{style_id}-{color_id}",
-        "HAS_ECOM_IMAGE": "Yes" if has_image else "No",
+        "ECOM_IMAGES_AVAILABLE": ecom_image_count,
+        "HAS_ECOM_IMAGE": "Yes" if ecom_image_count > 0 else "No",
     }
 
 
 def build_results_table(results: list[dict]) -> pd.DataFrame:
     results_df = pd.DataFrame(
         results,
-        columns=["STYLE_ID", "COLOR_ID", "ASSET_URL", "HAS_ECOM_IMAGE"],
+        columns=[
+            "STYLE_ID",
+            "COLOR_ID",
+            "ASSET_URL",
+            "ECOM_IMAGES_AVAILABLE",
+            "HAS_ECOM_IMAGE",
+        ],
     )
     if results_df.empty:
         return results_df
