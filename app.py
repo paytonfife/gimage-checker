@@ -222,7 +222,7 @@ def run_checks(df: pd.DataFrame) -> tuple[pd.DataFrame, float]:
             completed += 1
             progress.progress(
                 completed / total,
-                text=f"Checked {completed} of {total} style/color pairs...",
+                text=f"Checked {completed} of {total} style-colors...",
             )
 
     elapsed = time.time() - start
@@ -274,7 +274,7 @@ def render_page() -> None:
 
     st.markdown(f"## {APP_TITLE}")
     st.markdown(
-        "Upload a list of style/color pairs to check whether a qualifying "
+        "Upload a list of style-colors to check whether a qualifying "
         "ECOM image exists in GImage."
     )
 
@@ -300,11 +300,11 @@ def render_page() -> None:
         unique_pair_count = len(df)
         duplicate_count = valid_row_count - unique_pair_count
 
-        st.success(f"**{unique_pair_count}** unique style/color pairs found in your file.")
+        st.success(f"**{unique_pair_count}** unique style-colors found in your file.")
         if duplicate_count:
             st.info(
                 f"Removed **{duplicate_count}** duplicate row(s). "
-                f"Using **{unique_pair_count}** unique pair(s) from **{valid_row_count}** valid row(s)."
+                f"Using **{unique_pair_count}** unique style-colors from **{valid_row_count}** valid row(s)."
             )
 
         if st.button("Check GImage", type="primary", use_container_width=True):
@@ -340,7 +340,7 @@ def render_page() -> None:
 
             st.divider()
             col1, col2, col3 = st.columns(3)
-            col1.metric("Pairs Checked", total)
+            col1.metric("Style-Colors Checked", total)
             col2.metric("ECOM Found", yes_count)
             col3.metric("No ECOM", no_count)
             st.caption(f"Completed in {elapsed:.1f}s")

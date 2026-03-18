@@ -6,7 +6,7 @@ Streamlit app for checking whether a qualifying ECOM image exists in GImage for 
 
 - Accepts a CSV or Excel file with `STYLE_ID` and `COLOR_ID`
 - Normalizes common header variants like `Style ID`, `Style Number`, `Color ID`, and `Colsht`
-- Removes duplicate style/color pairs before making API calls
+- Removes duplicate style-colors before making API calls
 - Checks GImage in parallel using the mapped public API
 - Returns `HAS_ECOM_IMAGE` as `Yes` or `No`
 - Exports results to Excel
@@ -90,7 +90,7 @@ If these secrets are missing or malformed, the app stops with an error before ru
 1. Create a Google Sheet that will receive usage logs.
 2. Add a header row with:
    - `Timestamp`
-   - `Pairs Checked`
+   - `Style-Colors Checked`
    - `ECOM Yes`
    - `ECOM No`
    - `Elapsed Seconds`
