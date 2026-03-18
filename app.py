@@ -455,9 +455,11 @@ def render_page() -> None:
         }
 
         /* ── Progress ────────────────────────────── */
-        [data-testid="stProgressBar"] > div {
+        [data-testid="stProgress"] div[role="progressbar"],
+        [data-testid="stProgress"] > div > div,
+        [data-testid="stProgress"] > div > div > div {
             background: var(--red) !important;
-            border-radius: 2px !important;
+            background-color: var(--red) !important;
         }
 
         /* ── Caption ─────────────────────────────── */
