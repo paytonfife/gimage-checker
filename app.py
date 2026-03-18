@@ -212,6 +212,12 @@ def render_results_table(results_df: pd.DataFrame) -> None:
         results_df,
         use_container_width=True,
         hide_index=True,
+        column_config={
+            "ASSET_URL": st.column_config.LinkColumn(
+                "ASSET_URL",
+                display_text="View Asset",
+            )
+        },
     )
 
 
