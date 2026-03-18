@@ -454,13 +454,7 @@ def render_page() -> None:
             color: var(--subtle) !important;
         }
 
-        /* ── Progress ────────────────────────────── */
-        [data-testid="stProgress"] div[role="progressbar"],
-        [data-testid="stProgress"] > div > div,
-        [data-testid="stProgress"] > div > div > div {
-            background: var(--red) !important;
-            background-color: var(--red) !important;
-        }
+        /* Progress bar color handled by theme.primaryColor in config.toml */
 
         /* ── Caption ─────────────────────────────── */
         .stCaption, [data-testid="stCaptionContainer"] p {
