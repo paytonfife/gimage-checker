@@ -69,6 +69,15 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+Quick syntax check:
+
+```bash
+python -m py_compile app.py
+```
+
+Repo:
+`https://github.com/paytonfife/gimage-checker`
+
 ## Required Streamlit Secrets
 
 The app requires Google Sheets logging configuration before checks can run.
@@ -111,6 +120,53 @@ If these secrets are missing or malformed, the app stops with an error before ru
 
 If logging fails after deployment, the most common issue is that the sheet was not shared with the service account email.
 
+## Streamlit Deployment
+
+This project is intended to run on Streamlit Community Cloud from:
+`https://github.com/paytonfife/gimage-checker`
+
+Use these deploy settings:
+
+- Branch: `main`
+- Main file path: `app.py`
+
+In Streamlit Community Cloud, add the same secrets shown above under:
+`Manage app` -> `Settings` -> `Secrets`
+
+The deployed app will not run checks unless those secrets are present and valid.
+
+## Pushing Updates Live
+
+The live app is connected to the GitHub repo on `main`. Updating the live app is:
+
+1. Make changes locally.
+2. Run a quick check:
+
+```bash
+python -m py_compile app.py
+```
+
+3. Review changes:
+
+```bash
+git status
+git diff
+```
+
+4. Commit and push:
+
+```bash
+git add app.py README.md requirements.txt
+git commit -m "short description of change"
+git push origin main
+```
+
+If your change touches other files, include them in `git add` as needed.
+
+After `git push origin main`, Streamlit Community Cloud should automatically redeploy the app. If it does not, open the app dashboard and trigger a manual reboot/redeploy.
+
+Do not commit `.streamlit/secrets.toml`; keep secrets only in your local secrets file and in Streamlit Cloud.
+
 ## Verification Cases
 
 Known examples from `API.md`:
@@ -126,3 +182,4 @@ Known examples from `API.md`:
 - The app is desktop-first.
 - Results export contains `STYLE_ID`, `COLOR_ID`, `ASSET_URL`, `ECOM_IMAGES_AVAILABLE`, and `HAS_ECOM_IMAGE`.
 - The implementation intentionally mirrors the structure of the existing `style-checker` app.
+- Local sample file `test_style_colors.csv` can be used for smoke testing, but it is intentionally not tracked in Git unless you choose to add it.
