@@ -581,8 +581,8 @@ def render_page() -> None:
             st.divider()
             col1, col2, col3 = st.columns(3)
             col1.metric("Style-Colors Checked", total)
-            col2.metric("ECOM Found", yes_count)
-            col3.metric("No ECOM", no_count)
+            col2.metric("ECOM Images Found", yes_count)
+            col3.metric("No ECOM Images Found", no_count)
             st.caption(f"Completed in {elapsed:.1f}s")
 
             excel_buf = build_excel_file(results_df)
