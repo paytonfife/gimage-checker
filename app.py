@@ -15,6 +15,7 @@ from google.oauth2.service_account import Credentials
 
 APP_TITLE = "GImage ECOM Checker"
 API_URL = "https://gimage.guess.com/browse/api/Style/GetAllAssetsFromStyle"
+VIEWER_BASE_URL = "https://gimage.guess.com/Viewer/Style"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 WORKERS = 12
 TIMEOUT = 20
@@ -184,12 +185,16 @@ def check_style_color(style_id: str, color_id: str) -> dict:
     return {
         "STYLE_ID": style_id,
         "COLOR_ID": color_id,
+        "ASSET_URL": f"{VIEWER_BASE_URL}/{style_id}-{color_id}",
         "HAS_ECOM_IMAGE": "Yes" if has_image else "No",
     }
 
 
 def build_results_table(results: list[dict]) -> pd.DataFrame:
-    results_df = pd.DataFrame(results, columns=["STYLE_ID", "COLOR_ID", "HAS_ECOM_IMAGE"])
+    results_df = pd.DataFrame(
+        results,
+        columns=["STYLE_ID", "COLOR_ID", "ASSET_URL", "HAS_ECOM_IMAGE"],
+    )
     if results_df.empty:
         return results_df
     return results_df.sort_values(["STYLE_ID", "COLOR_ID"]).reset_index(drop=True)
