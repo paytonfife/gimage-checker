@@ -326,6 +326,12 @@ def render_page() -> None:
             letter-spacing: 0.05em !important;
         }
         p, li { color: var(--muted) !important; line-height: 1.65 !important; }
+        .stButton > button p, .stButton > button span,
+        .stDownloadButton > button p, .stDownloadButton > button span,
+        [data-testid="stFileUploaderDropzone"] button p,
+        [data-testid="stFileUploaderDropzone"] button span {
+            color: #ffffff !important;
+        }
 
         /* ── Divider ─────────────────────────────── */
         hr, [data-testid="stDivider"] hr {
@@ -433,27 +439,22 @@ def render_page() -> None:
         }
 
         /* ── Alerts ──────────────────────────────── */
-        [data-testid="stAlert"] {
+        [data-testid="stAlert"],
+        [data-testid="stAlert"] > div {
             border-radius: 3px !important;
             border: none !important;
             border-left: 2px solid var(--border) !important;
-            background: var(--surface) !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
             font-family: 'DM Sans', sans-serif !important;
             font-size: 0.875rem !important;
-            color: var(--muted) !important;
         }
-        [data-testid="stAlert"] p,
-        [data-testid="stAlert"] div {
+        [data-testid="stAlert"] p {
             color: var(--muted) !important;
         }
 
         /* ── Progress ────────────────────────────── */
-        [data-testid="stProgress"] > div {
-            background: var(--border) !important;
-            border-radius: 2px !important;
-            height: 3px !important;
-        }
-        [data-testid="stProgress"] > div > div {
+        [data-testid="stProgressBar"] > div {
             background: var(--gold) !important;
             border-radius: 2px !important;
         }
