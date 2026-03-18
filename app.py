@@ -259,18 +259,18 @@ def render_upload_help() -> None:
         """
         <div style="margin-bottom:1.25rem;">
             <div style="font-family:'DM Sans',sans-serif;font-size:0.62rem;font-weight:500;
-                letter-spacing:0.22em;text-transform:uppercase;color:#c8a96e;margin-bottom:0.5rem;">
+                letter-spacing:0.22em;text-transform:uppercase;color:#c01028;margin-bottom:0.5rem;">
                 Upload File
             </div>
             <p style="font-family:'DM Sans',sans-serif;font-weight:300;font-size:0.875rem;
-                color:#6e6b65;margin:0;line-height:1.65;">
+                color:#8a8480;margin:0;line-height:1.65;">
                 Your file needs two columns:
-                <strong style="color:#ece8df;font-weight:500;">STYLE_ID</strong> and
-                <strong style="color:#ece8df;font-weight:500;">COLOR_ID</strong>.
+                <strong style="color:#1a1616;font-weight:500;">STYLE_ID</strong> and
+                <strong style="color:#1a1616;font-weight:500;">COLOR_ID</strong>.
                 Accepts
-                <code style="background:#1a1a1a;color:#c8a96e;padding:0.1em 0.45em;
+                <code style="background:#ede9e4;color:#c01028;padding:0.1em 0.45em;
                     border-radius:2px;font-size:0.85em;">.csv</code> or
-                <code style="background:#1a1a1a;color:#c8a96e;padding:0.1em 0.45em;
+                <code style="background:#ede9e4;color:#c01028;padding:0.1em 0.45em;
                     border-radius:2px;font-size:0.85em;">.xlsx</code>
                 &mdash; extra columns are ignored.
             </p>
@@ -289,16 +289,16 @@ def render_page() -> None:
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
 
         :root {
-            --bg:       #080808;
-            --surface:  #111111;
-            --surface2: #191919;
-            --border:   #272727;
-            --gold:     #c8a96e;
-            --gold-dim: rgba(200,169,110,0.09);
-            --text:     #ece8df;
-            --muted:    #6a6760;
-            --green:    #3a6b4a;
-            --red:      #6b3a3a;
+            --bg:       #f5f2ee;
+            --surface:  #ffffff;
+            --surface2: #ede9e4;
+            --border:   #dbd5cf;
+            --gold:     #c01028;
+            --gold-dim: rgba(192,16,40,0.06);
+            --text:     #1a1616;
+            --muted:    #8a8480;
+            --green:    #2d6a42;
+            --red:      #c01028;
         }
 
         /* ── Global ──────────────────────────────── */
@@ -357,6 +357,17 @@ def render_page() -> None:
             color: var(--muted) !important;
             font-family: 'DM Sans', sans-serif !important;
         }
+        [data-testid="stFileUploaderDropzone"] button {
+            background: var(--gold) !important;
+            color: #ffffff !important;
+            border: none !important;
+            border-radius: 2px !important;
+            font-family: 'DM Sans', sans-serif !important;
+            font-size: 0.7rem !important;
+            font-weight: 500 !important;
+            letter-spacing: 0.15em !important;
+            text-transform: uppercase !important;
+        }
 
         /* ── Buttons ─────────────────────────────── */
         .stButton > button {
@@ -373,8 +384,8 @@ def render_page() -> None:
             transition: background 0.2s, color 0.2s !important;
         }
         .stButton > button:hover {
-            background: var(--text) !important;
-            color: var(--bg) !important;
+            background: #8c0b1d !important;
+            color: #ffffff !important;
             border: none !important;
         }
         .stDownloadButton > button {
@@ -457,9 +468,9 @@ def render_page() -> None:
 
         /* ── Scrollbar ───────────────────────────── */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-track { background: var(--surface2); }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--red); }
 
         /* ── Footer ──────────────────────────────── */
         .ai-office-branding {
@@ -481,16 +492,16 @@ def render_page() -> None:
         """
         <div style="margin-bottom:0.2rem;">
             <span style="font-family:'DM Sans',sans-serif;font-size:0.62rem;font-weight:500;
-                letter-spacing:0.28em;text-transform:uppercase;color:#c8a96e;">
+                letter-spacing:0.28em;text-transform:uppercase;color:#c01028;">
                 GUESS &mdash; ECOM
             </span>
         </div>
         <h1 style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:3.25rem;
-            letter-spacing:0.04em;margin:0.15rem 0 0.6rem 0;color:#ece8df;line-height:1.1;">
+            letter-spacing:0.04em;margin:0.15rem 0 0.6rem 0;color:#1a1616;line-height:1.1;">
             GImage Checker
         </h1>
         <p style="font-family:'DM Sans',sans-serif;font-weight:300;font-size:0.875rem;
-            color:#6a6760;margin:0 0 0.25rem 0;letter-spacing:0.015em;line-height:1.65;">
+            color:#8a8480;margin:0 0 0.25rem 0;letter-spacing:0.015em;line-height:1.65;">
             Batch-verify ECOM image availability across style-color combinations.
         </p>
         """,
@@ -577,7 +588,7 @@ def render_page() -> None:
             st.divider()
             st.markdown(
                 """<div style="font-family:'DM Sans',sans-serif;font-size:0.62rem;font-weight:500;
-                    letter-spacing:0.22em;text-transform:uppercase;color:#c8a96e;margin-bottom:0.75rem;">
+                    letter-spacing:0.22em;text-transform:uppercase;color:#c01028;margin-bottom:0.75rem;">
                     Results
                 </div>""",
                 unsafe_allow_html=True,
