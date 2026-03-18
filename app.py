@@ -215,7 +215,6 @@ def render_results_table(results_df: pd.DataFrame) -> None:
         column_config={
             "ASSET_URL": st.column_config.LinkColumn(
                 "ASSET_URL",
-                display_text="View Asset",
             )
         },
     )
