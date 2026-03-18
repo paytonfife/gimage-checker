@@ -428,7 +428,7 @@ def render_page() -> None:
             font-weight: 600 !important;
             letter-spacing: 1.5px !important;
             text-transform: uppercase !important;
-            color: var(--muted) !important;
+            color: #000000 !important;
         }
         [data-testid="stMetricValue"] > div {
             font-family: 'Bebas Neue', 'Arial Black', Arial, sans-serif !important;
