@@ -255,10 +255,28 @@ def build_excel_file(results_df: pd.DataFrame) -> io.BytesIO:
 
 
 def render_upload_help() -> None:
-    st.markdown("#### Upload your file")
     st.markdown(
-        "Your file needs two columns: **STYLE_ID** and **COLOR_ID**.  \n"
-        "Accepts `.csv` or `.xlsx` and ignores any extra columns."
+        """
+        <div style="margin-bottom:1.25rem;">
+            <div style="font-family:'DM Sans',sans-serif;font-size:0.62rem;font-weight:500;
+                letter-spacing:0.22em;text-transform:uppercase;color:#c8a96e;margin-bottom:0.5rem;">
+                Upload File
+            </div>
+            <p style="font-family:'DM Sans',sans-serif;font-weight:300;font-size:0.875rem;
+                color:#6e6b65;margin:0;line-height:1.65;">
+                Your file needs two columns:
+                <strong style="color:#ece8df;font-weight:500;">STYLE_ID</strong> and
+                <strong style="color:#ece8df;font-weight:500;">COLOR_ID</strong>.
+                Accepts
+                <code style="background:#1a1a1a;color:#c8a96e;padding:0.1em 0.45em;
+                    border-radius:2px;font-size:0.85em;">.csv</code> or
+                <code style="background:#1a1a1a;color:#c8a96e;padding:0.1em 0.45em;
+                    border-radius:2px;font-size:0.85em;">.xlsx</code>
+                &mdash; extra columns are ignored.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 
@@ -268,31 +286,215 @@ def render_page() -> None:
     st.markdown(
         """
         <style>
-        #MainMenu, footer, header {visibility: hidden;}
-        .block-container {padding: 2rem 3rem; max-width: 1280px;}
-        [data-testid="stFileUploader"] {
-            border: 2px dashed #d0d0d0;
-            border-radius: 12px;
-            padding: 1rem;
-            background: #fafafa;
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
+
+        :root {
+            --bg:       #080808;
+            --surface:  #111111;
+            --surface2: #191919;
+            --border:   #272727;
+            --gold:     #c8a96e;
+            --gold-dim: rgba(200,169,110,0.09);
+            --text:     #ece8df;
+            --muted:    #6a6760;
+            --green:    #3a6b4a;
+            --red:      #6b3a3a;
         }
-        .stDataFrame {border-radius: 8px; overflow: hidden;}
+
+        /* ── Global ──────────────────────────────── */
+        html, body, .stApp,
+        [data-testid="stAppViewContainer"],
+        [data-testid="stMain"],
+        section[data-testid="stSidebar"] ~ div {
+            background: var(--bg) !important;
+            color: var(--text) !important;
+            font-family: 'DM Sans', sans-serif !important;
+        }
+
+        #MainMenu, footer, header { visibility: hidden; }
+
+        .block-container {
+            padding: 3.5rem 5rem 5rem !important;
+            max-width: 1100px !important;
+        }
+
+        /* ── Typography ──────────────────────────── */
+        h1, h2, h3 {
+            font-family: 'Cormorant Garamond', serif !important;
+            font-weight: 300 !important;
+            color: var(--text) !important;
+            letter-spacing: 0.05em !important;
+        }
+        p, li { color: var(--muted) !important; line-height: 1.65 !important; }
+
+        /* ── Divider ─────────────────────────────── */
+        hr, [data-testid="stDivider"] hr {
+            border: none !important;
+            border-top: 1px solid var(--border) !important;
+            margin: 2rem 0 !important;
+        }
+
+        /* ── File Uploader ───────────────────────── */
+        [data-testid="stFileUploader"] {
+            background: var(--surface) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 3px !important;
+            padding: 1.5rem !important;
+        }
+        [data-testid="stFileUploaderDropzone"] {
+            background: transparent !important;
+            border: 1px dashed var(--border) !important;
+            border-radius: 3px !important;
+            transition: border-color 0.25s, background 0.25s !important;
+        }
+        [data-testid="stFileUploaderDropzone"]:hover {
+            border-color: var(--gold) !important;
+            background: var(--gold-dim) !important;
+        }
+        [data-testid="stFileUploaderDropzoneInstructions"] p,
+        [data-testid="stFileUploaderDropzoneInstructions"] small,
+        [data-testid="stFileUploaderDropzoneInstructions"] span {
+            color: var(--muted) !important;
+            font-family: 'DM Sans', sans-serif !important;
+        }
+
+        /* ── Buttons ─────────────────────────────── */
+        .stButton > button {
+            background: var(--gold) !important;
+            color: var(--bg) !important;
+            border: none !important;
+            border-radius: 2px !important;
+            font-family: 'DM Sans', sans-serif !important;
+            font-size: 0.7rem !important;
+            font-weight: 500 !important;
+            letter-spacing: 0.22em !important;
+            text-transform: uppercase !important;
+            padding: 0.8rem 2.5rem !important;
+            transition: background 0.2s, color 0.2s !important;
+        }
+        .stButton > button:hover {
+            background: var(--text) !important;
+            color: var(--bg) !important;
+            border: none !important;
+        }
+        .stDownloadButton > button {
+            background: transparent !important;
+            color: var(--gold) !important;
+            border: 1px solid var(--gold) !important;
+            border-radius: 2px !important;
+            font-family: 'DM Sans', sans-serif !important;
+            font-size: 0.7rem !important;
+            font-weight: 500 !important;
+            letter-spacing: 0.22em !important;
+            text-transform: uppercase !important;
+            padding: 0.8rem 2.5rem !important;
+            transition: all 0.2s !important;
+        }
+        .stDownloadButton > button:hover {
+            background: var(--gold) !important;
+            color: var(--bg) !important;
+        }
+
+        /* ── Metrics ─────────────────────────────── */
+        [data-testid="stMetric"] {
+            background: var(--surface) !important;
+            border: 1px solid var(--border) !important;
+            border-top: 2px solid var(--gold) !important;
+            border-radius: 3px !important;
+            padding: 1.75rem 1.5rem 1.5rem !important;
+        }
+        [data-testid="stMetricLabel"] > div,
+        [data-testid="stMetricLabel"] label,
+        [data-testid="stMetricLabel"] p {
+            font-family: 'DM Sans', sans-serif !important;
+            font-size: 0.62rem !important;
+            font-weight: 500 !important;
+            letter-spacing: 0.2em !important;
+            text-transform: uppercase !important;
+            color: var(--muted) !important;
+        }
+        [data-testid="stMetricValue"] > div {
+            font-family: 'Cormorant Garamond', serif !important;
+            font-size: 3rem !important;
+            font-weight: 300 !important;
+            color: var(--text) !important;
+            line-height: 1.1 !important;
+        }
+
+        /* ── Alerts ──────────────────────────────── */
+        [data-testid="stAlert"] {
+            border-radius: 3px !important;
+            border: none !important;
+            font-family: 'DM Sans', sans-serif !important;
+            font-size: 0.875rem !important;
+        }
+
+        /* ── Progress ────────────────────────────── */
+        [data-testid="stProgress"] > div {
+            background: var(--border) !important;
+            border-radius: 2px !important;
+            height: 3px !important;
+        }
+        [data-testid="stProgress"] > div > div {
+            background: var(--gold) !important;
+            border-radius: 2px !important;
+        }
+
+        /* ── Caption ─────────────────────────────── */
+        .stCaption, [data-testid="stCaptionContainer"] p {
+            font-family: 'DM Sans', sans-serif !important;
+            font-size: 0.7rem !important;
+            letter-spacing: 0.06em !important;
+            color: var(--muted) !important;
+        }
+
+        /* ── DataTable ───────────────────────────── */
+        .stDataFrame {
+            border: 1px solid var(--border) !important;
+            border-radius: 3px !important;
+            overflow: hidden !important;
+        }
+
+        /* ── Scrollbar ───────────────────────────── */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+        /* ── Footer ──────────────────────────────── */
         .ai-office-branding {
             text-align: center;
-            color: #9ca3af;
-            font-size: 0.75em;
-            padding: 2rem 0 1rem 0;
-            letter-spacing: 0.03em;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 3rem 0 1rem 0;
+            opacity: 0.45;
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    st.markdown(f"## {APP_TITLE}")
     st.markdown(
-        "Upload a list of style-colors to check whether a qualifying "
-        "ECOM image exists in GImage."
+        """
+        <div style="margin-bottom:0.2rem;">
+            <span style="font-family:'DM Sans',sans-serif;font-size:0.62rem;font-weight:500;
+                letter-spacing:0.28em;text-transform:uppercase;color:#c8a96e;">
+                GUESS &mdash; ECOM
+            </span>
+        </div>
+        <h1 style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:3.25rem;
+            letter-spacing:0.04em;margin:0.15rem 0 0.6rem 0;color:#ece8df;line-height:1.1;">
+            GImage Checker
+        </h1>
+        <p style="font-family:'DM Sans',sans-serif;font-weight:300;font-size:0.875rem;
+            color:#6a6760;margin:0 0 0.25rem 0;letter-spacing:0.015em;line-height:1.65;">
+            Batch-verify ECOM image availability across style-color combinations.
+        </p>
+        """,
+        unsafe_allow_html=True,
     )
 
     st.divider()
@@ -373,7 +575,13 @@ def render_page() -> None:
             )
 
             st.divider()
-            st.markdown("#### Results")
+            st.markdown(
+                """<div style="font-family:'DM Sans',sans-serif;font-size:0.62rem;font-weight:500;
+                    letter-spacing:0.22em;text-transform:uppercase;color:#c8a96e;margin-bottom:0.75rem;">
+                    Results
+                </div>""",
+                unsafe_allow_html=True,
+            )
             render_results_table(results_df)
 
     st.markdown(
