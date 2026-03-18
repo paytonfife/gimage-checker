@@ -372,7 +372,7 @@ def render_page() -> None:
         /* ── Buttons ─────────────────────────────── */
         .stButton > button {
             background: var(--gold) !important;
-            color: var(--bg) !important;
+            color: #ffffff !important;
             border: none !important;
             border-radius: 2px !important;
             font-family: 'DM Sans', sans-serif !important;
@@ -389,9 +389,9 @@ def render_page() -> None:
             border: none !important;
         }
         .stDownloadButton > button {
-            background: transparent !important;
-            color: var(--gold) !important;
-            border: 1px solid var(--gold) !important;
+            background: var(--gold) !important;
+            color: #ffffff !important;
+            border: none !important;
             border-radius: 2px !important;
             font-family: 'DM Sans', sans-serif !important;
             font-size: 0.7rem !important;
@@ -399,11 +399,11 @@ def render_page() -> None:
             letter-spacing: 0.22em !important;
             text-transform: uppercase !important;
             padding: 0.8rem 2.5rem !important;
-            transition: all 0.2s !important;
+            transition: background 0.2s !important;
         }
         .stDownloadButton > button:hover {
-            background: var(--gold) !important;
-            color: var(--bg) !important;
+            background: #8c0b1d !important;
+            color: #ffffff !important;
         }
 
         /* ── Metrics ─────────────────────────────── */
@@ -436,8 +436,15 @@ def render_page() -> None:
         [data-testid="stAlert"] {
             border-radius: 3px !important;
             border: none !important;
+            border-left: 2px solid var(--border) !important;
+            background: var(--surface) !important;
             font-family: 'DM Sans', sans-serif !important;
             font-size: 0.875rem !important;
+            color: var(--muted) !important;
+        }
+        [data-testid="stAlert"] p,
+        [data-testid="stAlert"] div {
+            color: var(--muted) !important;
         }
 
         /* ── Progress ────────────────────────────── */
@@ -479,9 +486,8 @@ def render_page() -> None:
             font-size: 0.6rem;
             letter-spacing: 0.2em;
             text-transform: uppercase;
-            color: var(--muted);
+            color: #8a8480;
             padding: 3rem 0 1rem 0;
-            opacity: 0.45;
         }
         </style>
         """,
