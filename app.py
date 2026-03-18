@@ -258,20 +258,20 @@ def render_upload_help() -> None:
     st.markdown(
         """
         <div style="margin-bottom:1.25rem;">
-            <div style="font-family:'DM Sans',sans-serif;font-size:0.62rem;font-weight:500;
-                letter-spacing:0.22em;text-transform:uppercase;color:#c01028;margin-bottom:0.5rem;">
+            <div style="font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:1.1rem;
+                font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#000000;margin-bottom:0.4rem;">
                 Upload File
             </div>
-            <p style="font-family:'DM Sans',sans-serif;font-weight:300;font-size:0.875rem;
-                color:#8a8480;margin:0;line-height:1.65;">
+            <p style="font-family:'Inter',Arial,sans-serif;font-size:14px;font-weight:400;
+                color:#777777;margin:0;line-height:1.7;">
                 Your file needs two columns:
-                <strong style="color:#1a1616;font-weight:500;">STYLE_ID</strong> and
-                <strong style="color:#1a1616;font-weight:500;">COLOR_ID</strong>.
+                <strong style="color:#333333;font-weight:600;">STYLE_ID</strong> and
+                <strong style="color:#333333;font-weight:600;">COLOR_ID</strong>.
                 Accepts
-                <code style="background:#ede9e4;color:#c01028;padding:0.1em 0.45em;
-                    border-radius:2px;font-size:0.85em;">.csv</code> or
-                <code style="background:#ede9e4;color:#c01028;padding:0.1em 0.45em;
-                    border-radius:2px;font-size:0.85em;">.xlsx</code>
+                <code style="background:#fafafa;color:#C8102E;padding:0.1em 0.45em;
+                    border:1px solid #e8e8e8;font-size:0.85em;">.csv</code> or
+                <code style="background:#fafafa;color:#C8102E;padding:0.1em 0.45em;
+                    border:1px solid #e8e8e8;font-size:0.85em;">.xlsx</code>
                 &mdash; extra columns are ignored.
             </p>
         </div>
@@ -286,19 +286,18 @@ def render_page() -> None:
     st.markdown(
         """
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap');
 
         :root {
-            --bg:       #f5f2ee;
+            --bg:       #f5f5f5;
             --surface:  #ffffff;
-            --surface2: #ede9e4;
-            --border:   #dbd5cf;
-            --gold:     #c01028;
-            --gold-dim: rgba(192,16,40,0.06);
-            --text:     #1a1616;
-            --muted:    #8a8480;
-            --green:    #2d6a42;
-            --red:      #c01028;
+            --surface2: #fafafa;
+            --border:   #e8e8e8;
+            --red:      #C8102E;
+            --red-dim:  rgba(200,16,46,0.06);
+            --text:     #333333;
+            --muted:    #777777;
+            --subtle:   #555555;
         }
 
         /* ── Global ──────────────────────────────── */
@@ -308,7 +307,7 @@ def render_page() -> None:
         section[data-testid="stSidebar"] ~ div {
             background: var(--bg) !important;
             color: var(--text) !important;
-            font-family: 'DM Sans', sans-serif !important;
+            font-family: 'Inter', Arial, sans-serif !important;
         }
 
         #MainMenu, footer, header { visibility: hidden; }
@@ -320,12 +319,13 @@ def render_page() -> None:
 
         /* ── Typography ──────────────────────────── */
         h1, h2, h3 {
-            font-family: 'Cormorant Garamond', serif !important;
-            font-weight: 300 !important;
-            color: var(--text) !important;
-            letter-spacing: 0.05em !important;
+            font-family: 'Bebas Neue', 'Arial Black', Arial, sans-serif !important;
+            font-weight: 700 !important;
+            color: #000000 !important;
+            letter-spacing: 2px !important;
+            text-transform: uppercase !important;
         }
-        p, li { color: var(--muted) !important; line-height: 1.65 !important; }
+        p, li { color: var(--muted) !important; line-height: 1.7 !important; }
         .stButton > button p, .stButton > button span,
         .stDownloadButton > button p, .stDownloadButton > button span,
         [data-testid="stFileUploaderDropzone"] button p,
@@ -344,50 +344,50 @@ def render_page() -> None:
         [data-testid="stFileUploader"] {
             background: var(--surface) !important;
             border: 1px solid var(--border) !important;
-            border-radius: 3px !important;
+            border-radius: 0 !important;
             padding: 1.5rem !important;
         }
         [data-testid="stFileUploaderDropzone"] {
             background: transparent !important;
             border: 1px dashed var(--border) !important;
-            border-radius: 3px !important;
+            border-radius: 0 !important;
             transition: border-color 0.25s, background 0.25s !important;
         }
         [data-testid="stFileUploaderDropzone"]:hover {
-            border-color: var(--gold) !important;
-            background: var(--gold-dim) !important;
+            border-color: var(--red) !important;
+            background: var(--red-dim) !important;
         }
         [data-testid="stFileUploaderDropzoneInstructions"] p,
         [data-testid="stFileUploaderDropzoneInstructions"] small,
         [data-testid="stFileUploaderDropzoneInstructions"] span {
             color: var(--muted) !important;
-            font-family: 'DM Sans', sans-serif !important;
+            font-family: 'Inter', Arial, sans-serif !important;
         }
         [data-testid="stFileUploaderDropzone"] button {
-            background: var(--gold) !important;
+            background: var(--red) !important;
             color: #ffffff !important;
             border: none !important;
             border-radius: 2px !important;
-            font-family: 'DM Sans', sans-serif !important;
+            font-family: 'Inter', Arial, sans-serif !important;
             font-size: 0.7rem !important;
-            font-weight: 500 !important;
-            letter-spacing: 0.15em !important;
+            font-weight: 600 !important;
+            letter-spacing: 1.5px !important;
             text-transform: uppercase !important;
         }
 
         /* ── Buttons ─────────────────────────────── */
         .stButton > button {
-            background: var(--gold) !important;
+            background: var(--red) !important;
             color: #ffffff !important;
             border: none !important;
             border-radius: 2px !important;
-            font-family: 'DM Sans', sans-serif !important;
+            font-family: 'Inter', Arial, sans-serif !important;
             font-size: 0.7rem !important;
-            font-weight: 500 !important;
-            letter-spacing: 0.22em !important;
+            font-weight: 600 !important;
+            letter-spacing: 1.5px !important;
             text-transform: uppercase !important;
             padding: 0.8rem 2.5rem !important;
-            transition: background 0.2s, color 0.2s !important;
+            transition: background 0.2s !important;
         }
         .stButton > button:hover {
             background: #8c0b1d !important;
@@ -395,14 +395,14 @@ def render_page() -> None:
             border: none !important;
         }
         .stDownloadButton > button {
-            background: var(--gold) !important;
+            background: var(--red) !important;
             color: #ffffff !important;
             border: none !important;
             border-radius: 2px !important;
-            font-family: 'DM Sans', sans-serif !important;
+            font-family: 'Inter', Arial, sans-serif !important;
             font-size: 0.7rem !important;
-            font-weight: 500 !important;
-            letter-spacing: 0.22em !important;
+            font-weight: 600 !important;
+            letter-spacing: 1.5px !important;
             text-transform: uppercase !important;
             padding: 0.8rem 2.5rem !important;
             transition: background 0.2s !important;
@@ -416,52 +416,53 @@ def render_page() -> None:
         [data-testid="stMetric"] {
             background: var(--surface) !important;
             border: 1px solid var(--border) !important;
-            border-top: 2px solid var(--gold) !important;
-            border-radius: 3px !important;
+            border-top: 3px solid var(--red) !important;
+            border-radius: 0 !important;
             padding: 1.75rem 1.5rem 1.5rem !important;
         }
         [data-testid="stMetricLabel"] > div,
         [data-testid="stMetricLabel"] label,
         [data-testid="stMetricLabel"] p {
-            font-family: 'DM Sans', sans-serif !important;
+            font-family: 'Inter', Arial, sans-serif !important;
             font-size: 0.62rem !important;
-            font-weight: 500 !important;
-            letter-spacing: 0.2em !important;
+            font-weight: 600 !important;
+            letter-spacing: 1.5px !important;
             text-transform: uppercase !important;
             color: var(--muted) !important;
         }
         [data-testid="stMetricValue"] > div {
-            font-family: 'Cormorant Garamond', serif !important;
-            font-size: 3rem !important;
-            font-weight: 300 !important;
-            color: var(--text) !important;
+            font-family: 'Bebas Neue', 'Arial Black', Arial, sans-serif !important;
+            font-size: 3.5rem !important;
+            font-weight: 700 !important;
+            color: #000000 !important;
+            letter-spacing: 2px !important;
             line-height: 1.1 !important;
         }
 
-        /* ── Alerts ──────────────────────────────── */
+        /* ── Alerts (red left-border callout) ────── */
         [data-testid="stAlert"],
         [data-testid="stAlert"] > div {
-            border-radius: 3px !important;
+            border-radius: 0 4px 4px 0 !important;
             border: none !important;
-            border-left: 2px solid var(--border) !important;
-            background: #ffffff !important;
-            background-color: #ffffff !important;
-            font-family: 'DM Sans', sans-serif !important;
+            border-left: 3px solid var(--red) !important;
+            background: var(--surface2) !important;
+            background-color: var(--surface2) !important;
+            font-family: 'Inter', Arial, sans-serif !important;
             font-size: 0.875rem !important;
         }
         [data-testid="stAlert"] p {
-            color: var(--muted) !important;
+            color: var(--subtle) !important;
         }
 
         /* ── Progress ────────────────────────────── */
         [data-testid="stProgressBar"] > div {
-            background: var(--gold) !important;
+            background: var(--red) !important;
             border-radius: 2px !important;
         }
 
         /* ── Caption ─────────────────────────────── */
         .stCaption, [data-testid="stCaptionContainer"] p {
-            font-family: 'DM Sans', sans-serif !important;
+            font-family: 'Inter', Arial, sans-serif !important;
             font-size: 0.7rem !important;
             letter-spacing: 0.06em !important;
             color: var(--muted) !important;
@@ -470,25 +471,28 @@ def render_page() -> None:
         /* ── DataTable ───────────────────────────── */
         .stDataFrame {
             border: 1px solid var(--border) !important;
-            border-radius: 3px !important;
+            border-radius: 0 !important;
             overflow: hidden !important;
         }
 
         /* ── Scrollbar ───────────────────────────── */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: var(--surface2); }
+        ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--red); }
 
-        /* ── Footer ──────────────────────────────── */
+        /* ── Footer (black closing block) ────────── */
         .ai-office-branding {
+            background-color: #000000;
             text-align: center;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.6rem;
-            letter-spacing: 0.2em;
+            font-family: 'Inter', Arial, sans-serif;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
-            color: #8a8480;
-            padding: 3rem 0 1rem 0;
+            color: #ffffff;
+            padding: 1.5rem;
+            margin-top: 2rem;
         }
         </style>
         """,
@@ -497,18 +501,21 @@ def render_page() -> None:
 
     st.markdown(
         """
-        <div style="margin-bottom:0.2rem;">
-            <span style="font-family:'DM Sans',sans-serif;font-size:0.62rem;font-weight:500;
-                letter-spacing:0.28em;text-transform:uppercase;color:#c01028;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.75rem;">
+            <div style="width:40px;height:2px;background:#C8102E;flex-shrink:0;"></div>
+            <span style="font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:600;
+                letter-spacing:4px;color:#000000;text-transform:uppercase;white-space:nowrap;">
                 GUESS &mdash; ECOM
             </span>
+            <div style="width:40px;height:2px;background:#C8102E;flex-shrink:0;"></div>
         </div>
-        <h1 style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:3.25rem;
-            letter-spacing:0.04em;margin:0.15rem 0 0.6rem 0;color:#1a1616;line-height:1.1;">
+        <h1 style="font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-weight:700;
+            font-size:3.5rem;letter-spacing:2px;text-transform:uppercase;
+            margin:0 0 0.5rem 0;color:#000000;line-height:1.05;">
             GImage Checker
         </h1>
-        <p style="font-family:'DM Sans',sans-serif;font-weight:300;font-size:0.875rem;
-            color:#8a8480;margin:0 0 0.25rem 0;letter-spacing:0.015em;line-height:1.65;">
+        <p style="font-family:'Inter',Arial,sans-serif;font-size:13px;font-weight:500;
+            letter-spacing:0.5px;color:#999999;text-transform:uppercase;margin:0 0 0.25rem 0;">
             Batch-verify ECOM image availability across style-color combinations.
         </p>
         """,
@@ -594,8 +601,8 @@ def render_page() -> None:
 
             st.divider()
             st.markdown(
-                """<div style="font-family:'DM Sans',sans-serif;font-size:0.62rem;font-weight:500;
-                    letter-spacing:0.22em;text-transform:uppercase;color:#c01028;margin-bottom:0.75rem;">
+                """<div style="font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:1.1rem;
+                    font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#000000;margin-bottom:0.75rem;">
                     Results
                 </div>""",
                 unsafe_allow_html=True,
