@@ -1,3 +1,4 @@
+import html as html_lib
 import io
 import json
 import time
@@ -6,6 +7,7 @@ import urllib.request
 from collections.abc import Mapping
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import gspread
@@ -13,7 +15,7 @@ import pandas as pd
 import streamlit as st
 from google.oauth2.service_account import Credentials
 
-APP_TITLE = "GImage ECOM Checker"
+APP_TITLE = "GImage Checker"
 API_URL = "https://gimage.guess.com/browse/api/Style/GetAllAssetsFromStyle"
 VIEWER_BASE_URL = "https://gimage.guess.com/Viewer/Style"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
@@ -22,6 +24,7 @@ TIMEOUT = 20
 GSHEET_SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 LA_TZ = ZoneInfo("America/Los_Angeles")
 SUPPORTED_REGIONS = ("NA", "EU")
+APP_ICON_PATH = Path(__file__).resolve().parent / "assets" / "guess-logo.png"
 
 
 def format_la_timestamp() -> str:
@@ -226,17 +229,56 @@ def build_results_table(results: list[dict]) -> pd.DataFrame:
 
 
 def render_results_table(results_df: pd.DataFrame) -> None:
-    st.dataframe(
-        results_df,
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "NA_AVAILABLE": "NA Available",
-            "EU_AVAILABLE": "EU Available",
-            "ASSET_URL": st.column_config.LinkColumn(
-                "Asset URL",
-            ),
-        },
+    if results_df.empty:
+        st.info("No results to display.")
+        return
+
+    header_cells = [
+        "<th>Style ID</th>",
+        "<th>Color ID</th>",
+        "<th>Images</th>",
+        '<th style="text-align:center">NA Available</th>',
+        '<th style="text-align:center">EU Available</th>',
+    ]
+
+    rows_html = ""
+    for _, row in results_df.iterrows():
+        style_id = html_lib.escape(str(row["STYLE_ID"]))
+        color_id = html_lib.escape(str(row["COLOR_ID"]))
+        asset_url = str(row["ASSET_URL"] or "").strip()
+        link = (
+            f'<a href="{html_lib.escape(asset_url)}" target="_blank" rel="noreferrer">View Images</a>'
+            if asset_url
+            else "-"
+        )
+
+        row_cells = [
+            f"<td>{style_id}</td>",
+            f"<td>{color_id}</td>",
+            f"<td>{link}</td>",
+        ]
+
+        for col in ("NA_AVAILABLE", "EU_AVAILABLE"):
+            is_yes = str(row[col]).strip().lower() == "yes"
+            badge = (
+                '<span class="yes-badge">&#10003; Yes</span>'
+                if is_yes
+                else '<span class="no-badge">&#10007; No</span>'
+            )
+            row_cells.append(f"<td style='text-align:center'>{badge}</td>")
+
+        rows_html += f"<tr>{''.join(row_cells)}</tr>"
+
+    st.markdown(
+        f"""
+        <table class="results-table">
+            <thead>
+                <tr>{''.join(header_cells)}</tr>
+            </thead>
+            <tbody>{rows_html}</tbody>
+        </table>
+        """,
+        unsafe_allow_html=True,
     )
 
 
@@ -301,7 +343,7 @@ def render_upload_help() -> None:
 
 
 def render_page() -> None:
-    st.set_page_config(page_title=APP_TITLE, page_icon=":frame_with_picture:", layout="wide")
+    st.set_page_config(page_title=APP_TITLE, page_icon=str(APP_ICON_PATH), layout="wide")
 
     st.markdown(
         """
@@ -475,6 +517,67 @@ def render_page() -> None:
         }
 
         /* Progress bar color handled by theme.primaryColor in config.toml */
+
+        .yes-badge {
+            display: inline-block;
+            background: #dff5e5;
+            color: #1c6b3c;
+            padding: 0.28rem 0.65rem;
+            border-radius: 0;
+            font-size: 0.78rem;
+            font-weight: 600;
+            line-height: 1.2;
+            min-width: 58px;
+        }
+        .no-badge {
+            display: inline-block;
+            background: #f9dede;
+            color: #b42318;
+            padding: 0.28rem 0.65rem;
+            border-radius: 0;
+            font-size: 0.78rem;
+            font-weight: 600;
+            line-height: 1.2;
+            min-width: 58px;
+        }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            font-family: 'Inter', Arial, sans-serif;
+        }
+        .results-table thead th {
+            background: #ffffff;
+            color: #000000;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            text-align: left;
+            padding: 12px 14px;
+            border-bottom: 2px solid var(--red);
+            border-right: 1px solid var(--border);
+        }
+        .results-table thead th:last-child,
+        .results-table td:last-child { border-right: none; }
+        .results-table tbody tr { border-bottom: 1px solid var(--border); }
+        .results-table tbody tr:nth-child(odd) { background: #f7eded; }
+        .results-table tbody tr:nth-child(even) { background: #ffffff; }
+        .results-table tbody tr:hover { background: var(--red-dim); }
+        .results-table td {
+            padding: 10px 14px;
+            color: var(--text);
+            font-size: 0.92rem;
+            border-right: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        .results-table a {
+            color: var(--red);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .results-table a:hover { text-decoration: underline; }
 
         /* ── Caption ─────────────────────────────── */
         .stCaption, [data-testid="stCaptionContainer"] p {
