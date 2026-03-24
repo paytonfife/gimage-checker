@@ -247,7 +247,7 @@ def render_results_table(results_df: pd.DataFrame) -> None:
         color_id = html_lib.escape(str(row["COLOR_ID"]))
         asset_url = str(row["ASSET_URL"] or "").strip()
         link = (
-            f'<a href="{html_lib.escape(asset_url)}" target="_blank" rel="noreferrer">View Images</a>'
+            f'<a href="{html_lib.escape(asset_url)}" target="_blank" rel="noreferrer">View Image</a>'
             if asset_url
             else "-"
         )
