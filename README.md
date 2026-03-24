@@ -1,6 +1,6 @@
 # GImage ECOM Checker
 
-Streamlit app for checking whether a qualifying ECOM image exists in GImage for each uploaded `STYLE_ID` / `COLOR_ID` pair.
+Streamlit app for checking whether qualifying ECOM images exist in GImage for each uploaded `STYLE_ID` / `COLOR_ID` pair, split by NA and EU region.
 
 ## What It Does
 
@@ -9,8 +9,8 @@ Streamlit app for checking whether a qualifying ECOM image exists in GImage for 
 - Removes duplicate style-colors before making API calls
 - Checks GImage in parallel using the mapped public API
 - Returns an `ASSET_URL` in the format `https://gimage.guess.com/Viewer/Style/STYLE-COLOR`
-- Returns `ECOM_IMAGES_AVAILABLE` as the number of ECOMM images found for the requested style-color
-- Returns `HAS_ECOM_IMAGE` as `Yes` or `No`
+- Returns `NA_AVAILABLE` as `Yes` or `No`
+- Returns `EU_AVAILABLE` as `Yes` or `No`
 - Exports results to Excel
 - Logs usage to a Google Sheet as part of the required runtime configuration
 
@@ -43,7 +43,7 @@ with this payload shape:
 }
 ```
 
-`HAS_ECOM_IMAGE` is `Yes` when the response contains an `ImageTypes` item with `ImageTypeId == "ECOMM"` and at least one image for the requested color. Invalid styles, invalid colors, and request failures are all treated as `No`.
+`NA_AVAILABLE` and `EU_AVAILABLE` are derived from `ECOMM` image entries for the requested color, grouped by `RegionId`. A row can be `Yes` for both regions when the same style-color is available in both folders. Invalid styles, invalid colors, and request failures are treated as `No` for both regions.
 
 `ASSET_URL` is constructed as:
 
@@ -51,7 +51,7 @@ with this payload shape:
 https://gimage.guess.com/Viewer/Style/<STYLE_ID>-<COLOR_ID>
 ```
 
-`ECOM_IMAGES_AVAILABLE` is the count of images in the matched `ECOMM` color entry. If no matching ECOMM images are found, it is `0`.
+The on-screen results table uses friendly labels (`NA Available`, `EU Available`), while the Excel export keeps the technical headers `NA_AVAILABLE` and `EU_AVAILABLE`.
 
 ## Local Setup
 
@@ -169,17 +169,16 @@ Do not commit `.streamlit/secrets.toml`; keep secrets only in your local secrets
 
 ## Verification Cases
 
-Known examples from `API.md`:
+Known regional examples:
 
-- `W6GD57D0853` / `G011` -> `Yes`
-- `W6GD57D0853` / `JBLK` -> `Yes`
-- `W6GKA8D1103` / `AKRN` -> `No`
-- `E6GB00Z5371` / `G61Y` -> `Yes`
-- `E6GB00Z5371` / `JBLK` -> `No`
+- `E6GB00Z5371` / `G61Y` -> `NA_AVAILABLE=Yes`, `EU_AVAILABLE=Yes`
+- `E6GB00Z5371` / `JBLK` -> `NA_AVAILABLE=No`, `EU_AVAILABLE=No`
+- `W6GD57D0853` / `G011` -> `NA_AVAILABLE=Yes`, `EU_AVAILABLE=No`
+- `W6GKA8D1103` / `AKRN` -> `NA_AVAILABLE=Yes`, `EU_AVAILABLE=No`
 
 ## Notes
 
 - The app is desktop-first.
-- Results export contains `STYLE_ID`, `COLOR_ID`, `ASSET_URL`, `ECOM_IMAGES_AVAILABLE`, and `HAS_ECOM_IMAGE`.
+- Results export contains `STYLE_ID`, `COLOR_ID`, `ASSET_URL`, `NA_AVAILABLE`, and `EU_AVAILABLE`.
 - The implementation intentionally mirrors the structure of the existing `style-checker` app.
 - Local sample file `test_style_colors.csv` can be used for smoke testing, but it is intentionally not tracked in Git unless you choose to add it.

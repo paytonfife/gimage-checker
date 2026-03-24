@@ -21,6 +21,7 @@ WORKERS = 12
 TIMEOUT = 20
 GSHEET_SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 LA_TZ = ZoneInfo("America/Los_Angeles")
+SUPPORTED_REGIONS = ("NA", "EU")
 
 
 def format_la_timestamp() -> str:
@@ -155,9 +156,10 @@ def fetch_style_assets(style_id: str, color_id: str) -> dict:
         }
 
 
-def get_ecom_image_count(response_data: dict | None, target_color: str) -> int:
+def get_ecom_region_counts(response_data: dict | None, target_color: str) -> dict[str, int]:
+    region_counts = {region: 0 for region in SUPPORTED_REGIONS}
     if not response_data:
-        return 0
+        return region_counts
 
     style = response_data.get("Style") or {}
     image_types = style.get("ImageTypes") or []
@@ -167,27 +169,43 @@ def get_ecom_image_count(response_data: dict | None, target_color: str) -> int:
         if image_type.get("ImageTypeId") != "ECOMM":
             continue
 
-        for color_entry in image_type.get("Colors") or []:
-            color_value = str(color_entry.get("Color") or "").strip().upper()
-            images = color_entry.get("Images") or []
-            if color_value == target_color_normalized and len(images) > 0:
-                return len(images)
+        color_entries = image_type.get("Colors") or []
+        if color_entries:
+            for color_entry in color_entries:
+                color_value = str(color_entry.get("Color") or "").strip().upper()
+                if color_value != target_color_normalized:
+                    continue
 
-        if not image_type.get("Colors") and image_type.get("Images"):
-            return len(image_type.get("Images") or [])
+                images = color_entry.get("Images") or []
+                region_id = str(color_entry.get("RegionId") or "").strip().upper()
+                if region_id in region_counts:
+                    region_counts[region_id] += len(images)
+                    continue
 
-    return 0
+                for image in images:
+                    image_region = str(image.get("RegionId") or "").strip().upper()
+                    if image_region in region_counts:
+                        region_counts[image_region] += 1
+            continue
+
+        for image in image_type.get("Images") or []:
+            image_color = str(image.get("Color") or "").strip().upper()
+            image_region = str(image.get("RegionId") or "").strip().upper()
+            if image_color == target_color_normalized and image_region in region_counts:
+                region_counts[image_region] += 1
+
+    return region_counts
 
 
 def check_style_color(style_id: str, color_id: str) -> dict:
     response = fetch_style_assets(style_id, color_id)
-    ecom_image_count = get_ecom_image_count(response["data"], color_id)
+    region_counts = get_ecom_region_counts(response["data"], color_id)
     return {
         "STYLE_ID": style_id,
         "COLOR_ID": color_id,
         "ASSET_URL": f"{VIEWER_BASE_URL}/{style_id}-{color_id}",
-        "ECOM_IMAGES_AVAILABLE": ecom_image_count,
-        "HAS_ECOM_IMAGE": "Yes" if ecom_image_count > 0 else "No",
+        "NA_AVAILABLE": "Yes" if region_counts["NA"] > 0 else "No",
+        "EU_AVAILABLE": "Yes" if region_counts["EU"] > 0 else "No",
     }
 
 
@@ -198,8 +216,8 @@ def build_results_table(results: list[dict]) -> pd.DataFrame:
             "STYLE_ID",
             "COLOR_ID",
             "ASSET_URL",
-            "ECOM_IMAGES_AVAILABLE",
-            "HAS_ECOM_IMAGE",
+            "NA_AVAILABLE",
+            "EU_AVAILABLE",
         ],
     )
     if results_df.empty:
@@ -213,15 +231,17 @@ def render_results_table(results_df: pd.DataFrame) -> None:
         use_container_width=True,
         hide_index=True,
         column_config={
+            "NA_AVAILABLE": "NA Available",
+            "EU_AVAILABLE": "EU Available",
             "ASSET_URL": st.column_config.LinkColumn(
-                "ASSET_URL",
-            )
+                "Asset URL",
+            ),
         },
     )
 
 
 def run_checks(df: pd.DataFrame) -> tuple[pd.DataFrame, float]:
-    progress = st.progress(0, text="Checking GImage for ECOM images...")
+    progress = st.progress(0, text="Checking GImage for NA and EU ECOM images...")
     results = []
     completed = 0
     total = len(df)
@@ -555,7 +575,9 @@ def render_page() -> None:
                 st.stop()
 
             results_df, elapsed = run_checks(df)
-            ecom_yes_count = int(results_df["HAS_ECOM_IMAGE"].eq("Yes").sum())
+            ecom_yes_count = int(
+                results_df[["NA_AVAILABLE", "EU_AVAILABLE"]].eq("Yes").any(axis=1).sum()
+            )
 
             try:
                 log_usage(len(results_df), ecom_yes_count, elapsed)
@@ -575,14 +597,14 @@ def render_page() -> None:
             results_df = st.session_state["results_df"]
             elapsed = st.session_state["elapsed"]
             total = len(results_df)
-            yes_count = int(results_df["HAS_ECOM_IMAGE"].eq("Yes").sum())
-            no_count = total - yes_count
+            na_yes_count = int(results_df["NA_AVAILABLE"].eq("Yes").sum())
+            eu_yes_count = int(results_df["EU_AVAILABLE"].eq("Yes").sum())
 
             st.divider()
             col1, col2, col3 = st.columns(3)
             col1.metric("Style-Colors Checked", total)
-            col2.metric("ECOM Images Found", yes_count)
-            col3.metric("No ECOM Images Found", no_count)
+            col2.metric("NA Available", na_yes_count)
+            col3.metric("EU Available", eu_yes_count)
             st.caption(f"Completed in {elapsed:.1f}s")
 
             excel_buf = build_excel_file(results_df)
