@@ -1,6 +1,6 @@
-# GImage ECOM Checker
+# GImage Asset Checker
 
-Streamlit app for checking whether qualifying ECOM images exist in GImage for each uploaded `STYLE_ID` / `COLOR_ID` pair, split by NA and EU region.
+Streamlit app for checking whether Ecom, Ghost, and Swatch images exist in GImage for each uploaded `STYLE_ID` / `COLOR_ID` pair, split by NA and EU region.
 
 ## What It Does
 
@@ -8,9 +8,9 @@ Streamlit app for checking whether qualifying ECOM images exist in GImage for ea
 - Normalizes common header variants like `Style ID`, `Style Number`, `Color ID`, and `Colsht`
 - Removes duplicate style-colors before making API calls
 - Checks GImage in parallel using the mapped public API
-- Returns an `ASSET_URL` in the format `https://gimage.guess.com/Viewer/Style/STYLE-COLOR`
-- Returns `NA_AVAILABLE` as `Yes` or `No`
-- Returns `EU_AVAILABLE` as `Yes` or `No`
+- Returns an `Images` link in the format `https://gimage.guess.com/Viewer/Style/STYLE-COLOR`
+- Returns separate `Yes` / `No` columns for `NA Ecom`, `NA Ghost`, `NA Swatch`, `EU Ecom`, `EU Ghost`, and `EU Swatch`
+- Returns a `Missing Images` column with a copy-friendly list of missing region/type combinations
 - Exports results to Excel
 - Logs usage to a Google Sheet as part of the required runtime configuration
 
@@ -43,15 +43,23 @@ with this payload shape:
 }
 ```
 
-`NA_AVAILABLE` and `EU_AVAILABLE` are derived from `ECOMM` image entries for the requested color, grouped by `RegionId`. A row can be `Yes` for both regions when the same style-color is available in both folders. Invalid styles, invalid colors, and request failures are treated as `No` for both regions.
+Availability is derived from image entries for the requested color, grouped by `RegionId`.
 
-`ASSET_URL` is constructed as:
+| Result label | GImage `ImageTypeId` |
+|---|---|
+| Ecom | `ECOMM` |
+| Ghost | `GHOST` |
+| Swatch | `SW` |
+
+A row can be `Yes` for both regions when the same style-color asset exists in both folders. Invalid styles, invalid colors, and request failures are treated as `No` for all region/type checks.
+
+The `Images` link is constructed as:
 
 ```text
 https://gimage.guess.com/Viewer/Style/<STYLE_ID>-<COLOR_ID>
 ```
 
-The on-screen results table uses friendly labels (`NA Available`, `EU Available`), while the Excel export keeps the technical headers `NA_AVAILABLE` and `EU_AVAILABLE`.
+The on-screen results table and Excel export use readable headers such as `NA Ecom`, `NA Ghost`, `EU Swatch`, and `Missing Images`.
 
 ## Local Setup
 
@@ -110,8 +118,8 @@ If these secrets are missing or malformed, the app stops with an error before ru
 2. Add a header row with:
    - `Timestamp`
    - `Style-Colors Checked`
-   - `ECOM Yes`
-   - `ECOM No`
+   - `Complete Rows`
+   - `Rows With Missing Images`
    - `Elapsed Seconds`
 3. In Google Cloud, create a service account for this app and generate a JSON key.
 4. Enable the Google Sheets API for that Google Cloud project.
@@ -171,14 +179,14 @@ Do not commit `.streamlit/secrets.toml`; keep secrets only in your local secrets
 
 Known regional examples:
 
-- `E6GB00Z5371` / `G61Y` -> `NA_AVAILABLE=Yes`, `EU_AVAILABLE=Yes`
-- `E6GB00Z5371` / `JBLK` -> `NA_AVAILABLE=No`, `EU_AVAILABLE=No`
-- `W6GD57D0853` / `G011` -> `NA_AVAILABLE=Yes`, `EU_AVAILABLE=No`
-- `W6GKA8D1103` / `AKRN` -> `NA_AVAILABLE=Yes`, `EU_AVAILABLE=No`
+- `E6GB00Z5371` / `G61Y` -> `NA Ecom=Yes`, `EU Ecom=Yes`, `EU Ghost=Yes`, `EU Swatch=Yes`
+- `E6GB00Z5371` / `JBLK` -> `NA Ecom=Yes`, `NA Swatch=Yes`, `EU Ghost=Yes`, `EU Swatch=Yes`
+- `W6GD57D0853` / `G011` -> `NA Ecom=Yes`, `NA Swatch=Yes`
+- `W6GKA8D1103` / `AKRN` -> `NA Ecom=Yes`, `NA Swatch=Yes`, `EU Swatch=Yes`
 
 ## Notes
 
 - The app is desktop-first.
-- Results export contains `STYLE_ID`, `COLOR_ID`, `ASSET_URL`, `NA_AVAILABLE`, and `EU_AVAILABLE`.
+- Results export contains `Style ID`, `Color ID`, `Images`, the six readable image availability columns, and `Missing Images`.
 - The implementation intentionally mirrors the structure of the existing `style-checker` app.
 - Local sample file `test_style_colors.csv` can be used for smoke testing, but it is intentionally not tracked in Git unless you choose to add it.

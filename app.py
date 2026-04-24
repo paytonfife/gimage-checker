@@ -24,6 +24,34 @@ TIMEOUT = 20
 GSHEET_SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 LA_TZ = ZoneInfo("America/Los_Angeles")
 SUPPORTED_REGIONS = ("NA", "EU")
+TARGET_IMAGE_TYPES = (
+    ("ECOM", "ECOMM", "Ecom"),
+    ("GHOST", "GHOST", "Ghost"),
+    ("SWATCH", "SW", "Swatch"),
+)
+IMAGE_RESULT_COLUMNS = tuple(
+    (f"{region}_{type_key}_IMAGE", f"{region} {label}", region, type_key)
+    for region in SUPPORTED_REGIONS
+    for type_key, _, label in TARGET_IMAGE_TYPES
+)
+IMAGE_TYPE_ID_TO_KEY = {
+    image_type_id: type_key for type_key, image_type_id, _ in TARGET_IMAGE_TYPES
+}
+IMAGE_TYPE_LABELS = {type_key: label for type_key, _, label in TARGET_IMAGE_TYPES}
+RESULT_COLUMNS = (
+    "STYLE_ID",
+    "COLOR_ID",
+    "ASSET_URL",
+    *(col for col, _, _, _ in IMAGE_RESULT_COLUMNS),
+    "MISSING_IMAGES",
+)
+DISPLAY_COLUMN_LABELS = {
+    "STYLE_ID": "Style ID",
+    "COLOR_ID": "Color ID",
+    "ASSET_URL": "Images",
+    "MISSING_IMAGES": "Missing Images",
+    **{col: label for col, label, _, _ in IMAGE_RESULT_COLUMNS},
+}
 APP_ICON_PATH = Path(__file__).resolve().parent / "assets" / "guess-logo.png"
 
 
@@ -54,7 +82,7 @@ def require_logging_config() -> str:
     return str(sheet_url)
 
 
-def log_usage(pairs_checked: int, ecom_yes_count: int, elapsed: float) -> None:
+def log_usage(pairs_checked: int, complete_count: int, elapsed: float) -> None:
     sheet_url = require_logging_config()
     creds = Credentials.from_service_account_info(
         st.secrets["gcp_service_account"],
@@ -67,8 +95,8 @@ def log_usage(pairs_checked: int, ecom_yes_count: int, elapsed: float) -> None:
         [
             format_la_timestamp(),
             pairs_checked,
-            ecom_yes_count,
-            pairs_checked - ecom_yes_count,
+            complete_count,
+            pairs_checked - complete_count,
             round(elapsed, 1),
         ],
         value_input_option="USER_ENTERED",
@@ -159,17 +187,20 @@ def fetch_style_assets(style_id: str, color_id: str) -> dict:
         }
 
 
-def get_ecom_region_counts(response_data: dict | None, target_color: str) -> dict[str, int]:
-    region_counts = {region: 0 for region in SUPPORTED_REGIONS}
+def get_image_availability(response_data: dict | None, target_color: str) -> dict[str, bool]:
+    availability = {
+        column: False for column, _, _, _ in IMAGE_RESULT_COLUMNS
+    }
     if not response_data:
-        return region_counts
+        return availability
 
     style = response_data.get("Style") or {}
     image_types = style.get("ImageTypes") or []
     target_color_normalized = target_color.strip().upper()
 
     for image_type in image_types:
-        if image_type.get("ImageTypeId") != "ECOMM":
+        image_type_key = IMAGE_TYPE_ID_TO_KEY.get(str(image_type.get("ImageTypeId") or ""))
+        if not image_type_key:
             continue
 
         color_entries = image_type.get("Colors") or []
@@ -180,49 +211,53 @@ def get_ecom_region_counts(response_data: dict | None, target_color: str) -> dic
                     continue
 
                 images = color_entry.get("Images") or []
-                region_id = str(color_entry.get("RegionId") or "").strip().upper()
-                if region_id in region_counts:
-                    region_counts[region_id] += len(images)
+                if not images:
                     continue
+
+                region_id = str(color_entry.get("RegionId") or "").strip().upper()
+                if region_id in SUPPORTED_REGIONS:
+                    availability[f"{region_id}_{image_type_key}_IMAGE"] = True
 
                 for image in images:
                     image_region = str(image.get("RegionId") or "").strip().upper()
-                    if image_region in region_counts:
-                        region_counts[image_region] += 1
+                    if image_region in SUPPORTED_REGIONS:
+                        availability[f"{image_region}_{image_type_key}_IMAGE"] = True
             continue
 
         for image in image_type.get("Images") or []:
             image_color = str(image.get("Color") or "").strip().upper()
             image_region = str(image.get("RegionId") or "").strip().upper()
-            if image_color == target_color_normalized and image_region in region_counts:
-                region_counts[image_region] += 1
+            if image_color == target_color_normalized and image_region in SUPPORTED_REGIONS:
+                availability[f"{image_region}_{image_type_key}_IMAGE"] = True
 
-    return region_counts
+    return availability
+
+
+def build_missing_images_text(availability: dict[str, bool]) -> str:
+    missing_images = []
+    for column, _, region, type_key in IMAGE_RESULT_COLUMNS:
+        if not availability[column]:
+            missing_images.append(f"{region} {IMAGE_TYPE_LABELS[type_key]}")
+
+    return ", ".join(missing_images) if missing_images else "None"
 
 
 def check_style_color(style_id: str, color_id: str) -> dict:
     response = fetch_style_assets(style_id, color_id)
-    region_counts = get_ecom_region_counts(response["data"], color_id)
-    return {
+    availability = get_image_availability(response["data"], color_id)
+    result = {
         "STYLE_ID": style_id,
         "COLOR_ID": color_id,
         "ASSET_URL": f"{VIEWER_BASE_URL}/{style_id}-{color_id}",
-        "NA_AVAILABLE": "Yes" if region_counts["NA"] > 0 else "No",
-        "EU_AVAILABLE": "Yes" if region_counts["EU"] > 0 else "No",
+        "MISSING_IMAGES": build_missing_images_text(availability),
     }
+    for column, _, _, _ in IMAGE_RESULT_COLUMNS:
+        result[column] = "Yes" if availability[column] else "No"
+    return result
 
 
 def build_results_table(results: list[dict]) -> pd.DataFrame:
-    results_df = pd.DataFrame(
-        results,
-        columns=[
-            "STYLE_ID",
-            "COLOR_ID",
-            "ASSET_URL",
-            "NA_AVAILABLE",
-            "EU_AVAILABLE",
-        ],
-    )
+    results_df = pd.DataFrame(results, columns=RESULT_COLUMNS)
     if results_df.empty:
         return results_df
     return results_df.sort_values(["STYLE_ID", "COLOR_ID"]).reset_index(drop=True)
@@ -233,19 +268,18 @@ def render_results_table(results_df: pd.DataFrame) -> None:
         st.info("No results to display.")
         return
 
-    header_cells = [
-        "<th>Style ID</th>",
-        "<th>Color ID</th>",
-        "<th>Images</th>",
-        '<th style="text-align:center">NA Available</th>',
-        '<th style="text-align:center">EU Available</th>',
-    ]
+    header_cells = []
+    for column in RESULT_COLUMNS:
+        label = DISPLAY_COLUMN_LABELS[column]
+        align = "center" if column not in ("STYLE_ID", "COLOR_ID", "ASSET_URL", "MISSING_IMAGES") else "left"
+        header_cells.append(f'<th style="text-align:{align}">{html_lib.escape(label)}</th>')
 
     rows_html = ""
     for _, row in results_df.iterrows():
         style_id = html_lib.escape(str(row["STYLE_ID"]))
         color_id = html_lib.escape(str(row["COLOR_ID"]))
         asset_url = str(row["ASSET_URL"] or "").strip()
+        missing_images = html_lib.escape(str(row["MISSING_IMAGES"]))
         link = (
             f'<a href="{html_lib.escape(asset_url)}" target="_blank" rel="noreferrer">View Image</a>'
             if asset_url
@@ -258,7 +292,7 @@ def render_results_table(results_df: pd.DataFrame) -> None:
             f"<td>{link}</td>",
         ]
 
-        for col in ("NA_AVAILABLE", "EU_AVAILABLE"):
+        for col, _, _, _ in IMAGE_RESULT_COLUMNS:
             is_yes = str(row[col]).strip().lower() == "yes"
             badge = (
                 '<span class="yes-badge">&#10003; Yes</span>'
@@ -266,6 +300,7 @@ def render_results_table(results_df: pd.DataFrame) -> None:
                 else '<span class="no-badge">&#10007; No</span>'
             )
             row_cells.append(f"<td style='text-align:center'>{badge}</td>")
+        row_cells.append(f"<td>{missing_images}</td>")
 
         rows_html += f"<tr>{''.join(row_cells)}</tr>"
 
@@ -283,7 +318,7 @@ def render_results_table(results_df: pd.DataFrame) -> None:
 
 
 def run_checks(df: pd.DataFrame) -> tuple[pd.DataFrame, float]:
-    progress = st.progress(0, text="Checking GImage for NA and EU ECOM images...")
+    progress = st.progress(0, text="Checking GImage for NA and EU image types...")
     results = []
     completed = 0
     total = len(df)
@@ -311,7 +346,8 @@ def run_checks(df: pd.DataFrame) -> tuple[pd.DataFrame, float]:
 
 def build_excel_file(results_df: pd.DataFrame) -> io.BytesIO:
     excel_buf = io.BytesIO()
-    results_df.to_excel(excel_buf, index=False, sheet_name="Results")
+    export_df = results_df.rename(columns=DISPLAY_COLUMN_LABELS)
+    export_df.to_excel(excel_buf, index=False, sheet_name="Results")
     excel_buf.seek(0)
     return excel_buf
 
@@ -376,7 +412,7 @@ def render_page() -> None:
 
         .block-container {
             padding: 3.5rem 5rem 5rem !important;
-            max-width: 1100px !important;
+            max-width: 1400px !important;
         }
 
         /* ── Typography ──────────────────────────── */
@@ -624,7 +660,7 @@ def render_page() -> None:
             <div style="width:40px;height:2px;background:#C8102E;flex-shrink:0;"></div>
             <span style="font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:600;
                 letter-spacing:4px;color:#000000;text-transform:uppercase;white-space:nowrap;">
-                GUESS &mdash; ECOM
+                GUESS &mdash; GIMAGE
             </span>
             <div style="width:40px;height:2px;background:#C8102E;flex-shrink:0;"></div>
         </div>
@@ -635,7 +671,7 @@ def render_page() -> None:
         </h1>
         <p style="font-family:'Inter',Arial,sans-serif;font-size:13px;font-weight:500;
             letter-spacing:0.5px;color:#999999;text-transform:uppercase;margin:0 0 0.25rem 0;">
-            Batch-verify ECOM image availability across style-color combinations.
+            Batch-verify Ecom, Ghost, and Swatch image availability by region.
         </p>
         """,
         unsafe_allow_html=True,
@@ -678,12 +714,10 @@ def render_page() -> None:
                 st.stop()
 
             results_df, elapsed = run_checks(df)
-            ecom_yes_count = int(
-                results_df[["NA_AVAILABLE", "EU_AVAILABLE"]].eq("Yes").any(axis=1).sum()
-            )
+            complete_count = int(results_df["MISSING_IMAGES"].eq("None").sum())
 
             try:
-                log_usage(len(results_df), ecom_yes_count, elapsed)
+                log_usage(len(results_df), complete_count, elapsed)
             except Exception as exc:
                 st.error(
                     "Usage logging failed. Results were generated but logging is required. "
@@ -700,21 +734,21 @@ def render_page() -> None:
             results_df = st.session_state["results_df"]
             elapsed = st.session_state["elapsed"]
             total = len(results_df)
-            na_yes_count = int(results_df["NA_AVAILABLE"].eq("Yes").sum())
-            eu_yes_count = int(results_df["EU_AVAILABLE"].eq("Yes").sum())
+            complete_count = int(results_df["MISSING_IMAGES"].eq("None").sum())
+            missing_count = total - complete_count
 
             st.divider()
             col1, col2, col3 = st.columns(3)
             col1.metric("Style-Colors Checked", total)
-            col2.metric("NA Available", na_yes_count)
-            col3.metric("EU Available", eu_yes_count)
+            col2.metric("Complete Rows", complete_count)
+            col3.metric("Rows With Missing Images", missing_count)
             st.caption(f"Completed in {elapsed:.1f}s")
 
             excel_buf = build_excel_file(results_df)
             st.download_button(
                 label="Download Results",
                 data=excel_buf,
-                file_name=f"gimage_ecom_check_{time.strftime('%Y%m%d_%H%M')}.xlsx",
+                file_name=f"gimage_asset_check_{time.strftime('%Y%m%d_%H%M')}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 type="primary",
                 use_container_width=True,

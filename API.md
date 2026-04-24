@@ -2,20 +2,22 @@
 
 ## Endpoint
 
-```
+```text
 POST https://gimage.guess.com/browse/api/Style/GetAllAssetsFromStyle
 ```
 
-No authentication required — the API is public.
+No authentication required. The API is public.
 
 ## Request
 
 **Headers:**
-```
+
+```text
 Content-Type: application/json
 ```
 
 **Body:**
+
 ```json
 {
   "StyleId": "W6GD57D0853",
@@ -40,46 +42,60 @@ Content-Type: application/json
         "Colors": [
           {
             "Color": "G011",
+            "RegionId": "NA",
             "Images": [ ... ],
             "MissingImages": []
           }
         ]
-      },
-      ...
+      }
     ]
   }
 }
 ```
 
-**Known `ImageTypeId` values:** `ECOMM`, `GHOST`, `SKETCH`, `SW` (Swatch), `WORN`, `3DSKETCH`, `3D360`, `DETSTILL`
+**Known `ImageTypeId` values:** `ECOMM`, `GHOST`, `SKETCH`, `SW`, `WORN`, `3DSKETCH`, `3D360`, `DETSTILL`
 
-## ECOM Detection Logic
+## Detection Logic
 
-A style/color pair **has an ECOM image** if:
+The app checks these requested image types:
 
-1. `data.Style.ImageTypes` contains an entry where `ImageTypeId === "ECOMM"`
-2. AND that entry's `Colors` array contains the target color with `Images.length > 0`
+| Result label | GImage `ImageTypeId` |
+|---|---|
+| Ecom | `ECOMM` |
+| Ghost | `GHOST` |
+| Swatch | `SW` |
 
-When passing a specific color in `StyleImageQf.Colors`, the response will only include that color — so the check simplifies to: does any `ImageTypes` entry have `ImageTypeId === "ECOMM"` with a non-empty `Images` array?
+A style/color pair has a region/type image when:
+
+1. `data.Style.ImageTypes` contains the target `ImageTypeId`
+2. The image type's `Colors` array contains the requested color
+3. That color entry has a non-empty `Images` array
+4. The color entry or image records have `RegionId` equal to `NA` or `EU`
+
+When passing a specific color in `StyleImageQf.Colors`, the response usually only includes that color. The app still verifies the color value defensively before marking any result as available.
 
 ## Validated Test Cases
 
-| Style | Color | Expected | Result |
-|---|---|---|---|
-| `W6GD57D0853` | G011 | Has ECOMM | ✅ ECOMM — 5 images |
-| `W6GD57D0853` | JBLK | Has ECOMM | ✅ ECOMM — 5 images |
-| `W6GKA8D1103` | AKRN | No ECOMM | ✅ No ECOMM (WORN, SKETCH, etc.) |
-| `E6GB00Z5371` | G61Y | Has ECOMM | ✅ ECOMM — 5 images |
-| `E6GB00Z5371` | JBLK | No ECOMM | ✅ No ECOMM (GHOST, SKETCH only) |
+Live GImage data changes as assets are added. These examples were rechecked while adding the multi-type output:
+
+| Style | Color | Availability summary |
+|---|---|---|
+| `W6GD57D0853` | `G011` | `NA Ecom`, `NA Swatch` |
+| `W6GD57D0853` | `JBLK` | `NA Ecom`, `NA Swatch` |
+| `W6GKA8D1103` | `AKRN` | `NA Ecom`, `NA Swatch`, `EU Swatch` |
+| `E6GB00Z5371` | `G61Y` | `NA Ecom`, `EU Ecom`, `EU Ghost`, `EU Swatch` |
+| `E6GB00Z5371` | `JBLK` | `NA Ecom`, `NA Swatch`, `EU Ghost`, `EU Swatch` |
 
 ## Source
 
 Endpoint and request shape discovered by inspecting the JS bundle at:
-```
+
+```text
 https://gimage.guess.com/browse/static/js/main.34436b26.js
 ```
 
 API base URL defined in:
-```
-https://gimage.guess.com/browse/config.js → apiNamespace: "/browse/api/"
+
+```text
+https://gimage.guess.com/browse/config.js -> apiNamespace: "/browse/api/"
 ```
